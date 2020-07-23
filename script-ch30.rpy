@@ -1,6 +1,4 @@
-
-
-
+#DEFAULTS FOR ALL PERSISTENT VARIABLES
 default persistent.monikatopics = []
 default persistent.newtopics = []
 default persistent.monika_reload = 0
@@ -334,30 +332,99 @@ init python:
     import datetime
     process_list = []
     currentuser = ""
-    if renpy.windows:
-        try:
-            process_list = subprocess.check_output("wmic process get Description", shell=True).lower().replace("\r", "").replace(" ", "").split("\n")
-        except:
-            pass
-        try:
-            for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
-                user = os.environ.get(name)
-                if user:
-                    currentuser = user
-        except:
-            pass
-
-
     dismiss_keys = config.keymap['dismiss']
+    def get_process_list():
+        """
+        Gets a list of running processes (windows only)
+        """
+        if renpy.windows:
+            try:
+                process_list = subprocess.check_output(
+                    "wmic process get Description",
+                    shell=True
+                ).lower().replace("\r", "").replace(" ", "").split("\n")
+
+            except:
+                pass
+
+            try:
+                for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
+                    user = os.environ.get(name)
+                    if user:
+                        currentuser = user
+            except:
+                pass
+
+    FLAG_ZORDER = 2
+    NATSUKI_ZORDER = 3
+    CLOTHES_ACCESSORY_ZORDER = 4
+
+    #Maps for ease in parsing things to show
+    FLAG_MAP = {
+        "Gay": "flag gay",
+        "Lesbian": "flag lesbian",
+        "Trans": "flag trans",
+        "Enby": "flag enby",
+        "Bi": "flag bi",
+        "Pan": "flag pan",
+        "Ace": "flag asexual",
+        "blm": "flag blm"
+    }
+
+    #NOTE: These should really be compiled into a dynamic displayable for Natsuki
+    #As such, these sprites will always be tied to her making transforms possible without needing to move clothes and accessories too
+    #It will also allow these to be swapped completely dynamically via just changing variables instead of needing to call
+    #A function to show/hide other clothes/accessories.
+
+    #NOTE: Additionally, why not just store the exact image tag in the persistent variable? We can just `renpy.show()` directly
+    #Without needing to pass the value into a lookup to then get the correct image tag
+
+    #TODO: Change persistent storage for accessories/clothes/emotion/etc.
+    #TODO: Rebuild Natsuki's sprite as a dynamicdisplayable
+    CLOTHING_MAP = {
+        "Witch": "clothes jhollow",
+        "Christmas": "clothes jchris",
+        "Maid": "clothes jmaid",
+        "Bikini": "clothes jbikini",
+        "Beach": "clothes jbeach",
+        "Dress": "clothes jdress",
+        "WhiteTank": "clothes jwhitetank",
+        "default": "clothes juni"
+    }
+
+    HEAD_ACCESSORY_MAP = {
+        "Glasses": "accessory jglasses",
+        "Mask": "accessory jmask"
+    }
+
+    HAIR_COLOR_MAP = {
+        "Blonde": "blonde",
+        "Lime": "lime",
+        "Red": "red",
+        "Sky Blue": "skyblue",
+        "Ginger": "ginger",
+        "Silver": "silver"
+    }
+
+    EMOTION_EXP_MAP = {
+        "Casual": "natsuki jhb_idle",
+        "Happy": "natsuki jha_idle",
+        "Angry": "natsuki jaa_idle",
+        "Sad": "natsuki jsa_idle"
+    }
+
+
 
     def slow_nodismiss(event, interact=True, **kwargs):
         config.allow_skipping = False
         if persistent.monikas_return:
             if not os.path.isfile(basedir + "/characters/monika.chr"):
                 renpy.call("ch31_monikareturn")
+
         if event == "begin":
             config.keymap['dismiss'] = []
             renpy.display.behavior.clear_keymap_cache()
+
         elif event == "slow_done":
             config.keymap['dismiss'] = dismiss_keys
             renpy.display.behavior.clear_keymap_cache()
@@ -370,26 +437,43 @@ label ch30_noskip:
     pause 0.4
     n "No!"
     hide screen fake_skip_indicator
-    if persistent.current_monikatopic != 0:
+
+    #Always make sure we have a label before doing a call expression
+    if renpy.has_label(persistent.current_monikatopic):
         n "Now, where was I...?"
         pause 4.0
-        call expression "ch30_" + str(persistent.current_monikatopic) from _call_expression
+        call expression "ch30_{0}".format(persistent.current_monikatopic)
+
     jump ch30_loop
     return
 
 label showroom:
+    #TODO: Custom sunset/sunrise times?
+    if (0 <= current_time < 5) or current_time >= 19:
+        $ time_of_day = "Night"
+        if persistent.wearing == "Witch":
+            $ persistent.wearing = ""
+
+    else:
+        $ time_of_day = "Day"
+
     scene black
     if current_time >= 6 and current_time < 19:
         if persistent.background_day == "beach":
             scene beach
+
         elif persistent.background_day == "park":
             scene park
+
         show room_day
         $ time_of_day = "Day"
+
     elif not persistent.room_animated:
         show noanim
+
     elif persistent.anniversary:
         scene black
+
     else:
         if persistent.background_night == "space":
             show mask_2 zorder 1
@@ -397,114 +481,97 @@ label showroom:
             show room_mask as rm zorder 1:
                 size (320,180)
                 pos (30,200)
+
             show room_mask2 as rm2 zorder 1:
                 size (320,180)
                 pos (935,200)
+
             show monika_room zorder 2
             show monika_room_highlight zorder 2
+
         elif persistent.background_night == "beach":
             scene beach_night
             show room_night zorder 2
+
     show base 1a zorder 3
+
     if current_time >= 19:
-        if persistent.lights == False:
+        if not persistent.lights:
             show shade zorder 5
+
     elif current_time >= 0 and current_time < 5:
-        if persistent.lights == False:
+        if not persistent.lights:
             show shade zorder 5
+
     $ persistent.other_bg = False
     call emotion_set_up
+
     if persistent.anniversary:
         hide beach
         hide room_day
         if persistent.christmas_time == "Eve":
             hide shade
             show cabin_interior zorder 1
+
         elif persistent.christmas_time == "Day":
             hide shade
             show cabin_interior zorder 1
+
         else:
             show cemetary zorder 1
             show monika_room zorder 2
             show decorations zorder 3
-    if persistent.flag == "Gay":
-        show flag gay zorder 2
-    elif persistent.flag == "Lesbian":
-        show flag lesbian zorder 2
-    elif persistent.flag == "Trans":
-        show flag trans zorder 2
-    elif persistent.flag == "Enby":
-        show flag enby zorder 2
-    elif persistent.flag == "Bi":
-        show flag bi zorder 2
-    elif persistent.flag == "Pan":
-        show flag pan zorder 2
-    elif persistent.flag == "Ace":
-        show flag asexual zorder 2
-    elif persistent.flag == "BLM":
-        show flag blm zorder 2
-    if persistent.wearing == "Witch":
-        show clothes jhollow zorder 4
-    elif persistent.wearing == "Christmas":
-        show clothes jchris zorder 4
-    elif persistent.wearing == "Maid":
-        show clothes jmaid zorder 4
-    elif persistent.wearing == "Bikini":
-        show clothes jbikini zorder 4
-    elif persistent.wearing == "Beach":
-        show clothes jbeach zorder 4
-    elif persistent.wearing == "Dress":
-        show clothes jdress zorder 4
-    elif persistent.wearing == "WhiteTank":
-        show clothes jwhitetank zorder 4
-    elif persistent.wearing == "":
-        show clothes juni zorder 4
-    elif persistent.using_catears:
-        show catears zorder 4
-    if persistent.head_accessory == "Glasses":
-        show accessory jglasses zorder 4
-    elif persistent.head_accessory == "Mask":
-        show accessory jmask zorder 4
-    if persistent.yandere:
-        show natsuki jyan zorder 3
-    else:
-        if persistent.natsuki_emotion == "Casual":
-            show natsuki jhb_idle zorder 3
-        if persistent.natsuki_emotion == "Happy":
-            show natsuki jha_idle zorder 3
-        if persistent.natsuki_emotion == "Angry":
-            show natsuki jaa_idle zorder 3
-        if persistent.natsuki_emotion == "Sad":
-            show natsuki jsa_idle zorder 3
-        if persistent.hair_color == "Blonde" and persistent.natsuki_emotion != "Sad":
-            show blonde zorder 3
-        if persistent.hair_color == "Lime" and persistent.natsuki_emotion != "Sad":
-            show lime zorder 3
-        if persistent.hair_color == "Red" and persistent.natsuki_emotion != "Sad":
-            show red zorder 3
-        if persistent.hair_color == "Sky Blue" and persistent.natsuki_emotion != "Sad":
-            show skyblue zorder 3
-        if persistent.hair_color == "Ginger" and persistent.natsuki_emotion != "Sad":
-            show ginger zorder 3
-        if persistent.hair_color == "Silver" and persistent.natsuki_emotion != "Sad":
-            show silver zorder 3
-        if not persistent.anniversary:
-            show n2 zorder 4
+
+    python:
+        #If we have a flag, we'll put it on now
+        if renpy.has_image(FLAG_MAP.get(persistent.flag)):
+            renpy.show(FLAG_MAP[persistent.flag], zorder=FLAG_ZORDER)
+
+        #Handle clothes here
+        outfit = CLOTHING_MAP.get(persistent.wearing, CLOTHING_MAP["default"])
+        if renpy.has_image(outfit):
+            renpy.show(outfit, zorder=CLOTHES_ACCESSORY_ZORDER)
+
+        if persistent.using_catears:
+            renpy.show("catears", zorder=CLOTHES_ACCESSORY_ZORDER)
+
+        if renpy.has_image(HEAD_ACCESSORY_MAP.get(persistent.head_accessory)):
+            renpy.show(HEAD_ACCESSORY_MAP[persistent.head_accessory], zorder=CLOTHES_ACCESSORY_ZORDER)
+
+        #If yandere, we just do yandere image
+        if persistent.yandere:
+            renpy.show("natsuki jyan", zorder=3)
+
+        #Otherwise, let's setup from emotion
+        else:
+            if renpy.has_image(EMOTION_EXP_MAP.get(persistent.natsuki_emotion)):
+                renpy.show(EMOTION_EXP_MAP[persistent.natsuki_emotion], zorder=NATSUKI_ZORDER)
+
+            #If Natsuki isn't sad, we should also render hair color changes
+            if persistent.natsuki_emotion != "Sad" and renpy.has_image(HAIR_COLOR_MAP.get(persistent.hair_color)):
+                renpy.show(HAIR_COLOR_MAP[persistent.hair_color], zorder=NATSUKI_ZORDER)
+
+            if not persistent.anniversary:
+                renpy.show("n2", zorder=4)
+
     if persistent.two_years:
         if persistent.candels_blown:
             show cake zorder 5
         else:
             show cakelit zorder 5
+
     if persistent.flower:
         show flower zorder 4
     return
 
 label natsukireset:
-    $ persistent.wearing == ""
-    $ persistent.hair_color == ""
-    $ persistent.flower == ""
-    $ persistent.using_catears = False
-    $ persistent.head_accessory == ""
+    python:
+        persistent.wearing == ""
+        persistent.hair_color == ""
+        persistent.flower == ""
+        persistent.using_catears = False
+        persistent.head_accessory == ""
+
     show mask_2 zorder 1
     show mask_3 zorder 1
     show room_mask as rm zorder 1:
@@ -543,13 +610,14 @@ image splash-glitch2 = "images/bg/splash-glitch2.png"
 
 label ch30_main:
     python:
-        today = datetime.date.today()      
+        today = datetime.date.today()
         day = datetime.date.today().strftime("%A")
         month = datetime.date.today().strftime("%B")
         date = datetime.date.today().strftime("%d")
         year = datetime.date.today().strftime("%Y")
         now = datetime.datetime.now()
         current_time = datetime.datetime.now().time().hour
+
     $ style.say_window = style.window
     $ style.namebox = style.namebox
     python:
@@ -558,6 +626,7 @@ label ch30_main:
     python:
         try: os.remove(config.basedir + "/game/python-packages/basecode.py")
         except: pass
+
     $ delete_character("monika")
     $ delete_character("sayori")
     $ delete_character("yuri")
@@ -989,6 +1058,7 @@ label emotion_set_up:
         $ persistent.anniversary = False
     else:
         $ persistent.anniversary = True
+
     if today == datetime.date(2020, 5, 1):
         $ persistent.two_years = True
     elif today == datetime.date(2020, 5, 2):
@@ -1012,6 +1082,7 @@ label emotion_set_up:
 label event:
     if current_time >= 8 and current_time < 18:
         return
+
     n jnb "[player]...?"
     n "Somethings in the code..."
     n "Give me a s-{nw}"
@@ -1048,73 +1119,62 @@ label event:
     n "I'll see what I can do about it..."
     $ persistent.seen_event = True
     jump ch30_loop
-    
 
+#NOTE: This label should ONLY be called on load.
 label ch30_autoload:
     python:
-        today = datetime.date.today()      
+        today = datetime.date.today()
         day = datetime.date.today().strftime("%A")
         month = datetime.date.today().strftime("%B")
         date = datetime.date.today().strftime("%d")
         year = datetime.date.today().strftime("%Y")
         now = datetime.datetime.now()
         current_time = datetime.datetime.now().time().hour
-    $ persistent.prologue = False
-    $ persistent.autoload = "ch30_autoload"
-    $ n.display_args["callback"] = slow_nodismiss
-    $ n.what_args["slow_abortable"] = config.developer
-    $ style.say_dialogue = style.default_monika
-    $ config.allow_skipping = False
-    $ HKBShowButtons()
-    $ allow_boop = False
-    if current_time >= 0 and current_time < 5:
-        $ time_of_day = "Night"
-        if persistent.wearing == "Witch":
-            $ persistent.wearing = ""
-            scene black
-            call showroom
-    elif current_time >= 19:
-        $ time_of_day = "Night"
-        if persistent.wearing == "Witch":
-            $ persistent.wearing = ""
-            scene black
-            call showroom
-    else:
-        $ time_of_day = "Day"
-    python:
-        try: os.remove(config.basedir + "/game/python-packages/delcode.py")
-        except: pass
-    python:
-        try: os.remove(config.basedir + "/game/python-packages/basecode.py")
-        except: pass
-    python:
-        try: renpy.file(config.basedir + "../(edgarspoem).txt")
-        except: open(config.basedir + "/edgarspoem.txt", "wb").write(renpy.file("edgarspoem.txt").read())
+
+        persistent.prologue = False
+        persistent.autoload = "ch30_autoload"
+        n.display_args["callback"] = slow_nodismiss
+        n.what_args["slow_abortable"] = config.developer
+        style.say_dialogue = style.default_monika
+        config.allow_skipping = False
+        HKBShowButtons()
+        allow_boop = False
+
     call startup_dlc_check
     call showroom
+
     if persistent.current_monikatopic == 0:
         python:
             if len(persistent.monikatopics) == 0:
                 persistent.monikatopics = range(1,43)
+
             persistent.current_monikatopic = renpy.random.choice(persistent.monikatopics)
             persistent.monikatopics.remove(persistent.current_monikatopic)
+
     $ delete_character("monika")
     $ delete_character("sayori")
     $ delete_character("yuri")
+
     if persistent.newemotion_startup:
-        $ persistent.natsuki_emotion == "Casual"
+        $ persistent.natsuki_emotion = "Casual"
         $ persistent.newemotion_startup = False
+
     call playmusic
     if persistent.finished_part_1 and not persistent.given_returnchoice:
         call ch30_act2reload
+
     if not exiting_fight:
         call ch30_start
         $ exiting_fight = False
+
     $ persistent.monika_reload += 1
     if not persistent.tried_skip:
         $ config.allow_skipping = True
+
     else:
         $ config.allow_skipping = False
+
+    #TODO: A better system for this
     $ remind = renpy.random.randint(1, 10)
     if remind == 10:
         call screen dialog("Please make sure to check the \"Latest release\"\nbutton in the pause screen to make\nsure you are on the latest version!", ok_action=Return)
@@ -1154,6 +1214,7 @@ label ch30_start:
         call hideconsole
         n "There!"
         return
+
     elif date == persistent.bday_day:
         if month == persistent.bday_month:
             n jha "Hey!"
@@ -1207,7 +1268,7 @@ label ch30_start:
                     n jnb "No...? But you're close!"
             n jnb "Uh, whatever."
             n jha "It's the two year anniversary of Just Natsuki!"
-            show plate zorder 5 with dissolve 
+            show plate zorder 5 with dissolve
             $ persistent.music_daijoubu = False
             $ persistent.music_natsuki = False
             $ persistent.music_dokidoki = False
@@ -1558,7 +1619,7 @@ label quickshow:
 
 label ch30_loop:
     python:
-        today = datetime.date.today()      
+        today = datetime.date.today()
         day = datetime.date.today().strftime("%A")
         month = datetime.date.today().strftime("%B")
         date = datetime.date.today().strftime("%d")
@@ -2100,8 +2161,8 @@ label chani_5:
     $ persistent.seen_anievent = True
     $ exiting_fight = True
     jump ch30_autoload
-    
- 
+
+
 label ch30_0:
     n "..."
     return
@@ -2479,7 +2540,7 @@ label ch30_28:
     n "Like Exit Music."
     n jsb "We don't talk about the ending."
     return
-    
+
 label ch30_29:
     n jnb "I've noticed that video game history and movie history are sort of similar."
     n "They both kinda have those big franchises that blew everyone away!"
@@ -2623,7 +2684,7 @@ label ch30_37:
     n "I wont get involved on the drama since I don't know much about it."
     return
 
-label ch30_38:   
+label ch30_38:
     n jnb "Hey [player]?"
     n "Do you think it's actually possible to port {i}Doki Doki Literature Club{/i} to another game console?"
     n "For instance{w=1.0} Nintendo Switch?"
@@ -2752,7 +2813,7 @@ label ch30_46:
     menu:
         "Yes":
             n "Oh, cool!"
-            n "Maybe you can help me fix up the game!" 
+            n "Maybe you can help me fix up the game!"
         "No":
             n jnb "Aw, that's a shame..."
             n "Well, hey. What can you do?"
@@ -3013,7 +3074,7 @@ label ch30_sayori:
     n jnb "Well of course!"
     n "I didn't really get to see her but I kinda remember her."
     jump ch30_loop
-   
+
 label ch30_yurikill:
     n jnb "I understand why you ask."
     n "I mean she never attacked me."
@@ -3449,7 +3510,7 @@ label ch30_mc:
         n "And I really enjoy hanging out with you!"
     else:
         n jnb "I don't know..."
-        n "I only just met the real you."   
+        n "I only just met the real you."
     jump ch30_loop
 
 label restart:
@@ -3637,7 +3698,7 @@ label ch30_loveyou:
                 elif persistent.player_gender == "Male":
                     n jha "You're the best boyfriend I could ask for."
                 else:
-                    n jha "You're the best partner I could ask for." 
+                    n jha "You're the best partner I could ask for."
         "Nevermind":
             jump normaltalkmenu
     jump ch30_loop
@@ -3778,7 +3839,7 @@ label ch30_3eye:
     hide screen tear
     n jnb "I don't know what that is!"
     $ persistent.seen_3eye = True
-    jump ch30_loop 
+    jump ch30_loop
 
 
 label ch30_act2reload:
@@ -4217,7 +4278,7 @@ label ch30_plan:
     n "Well at least why I tried too..."
     $ config.overlay_screens = []
     scene black with dissolve_scene
-    hide screen hkb_overlay 
+    hide screen hkb_overlay
     with dissolve_scene
     play music mend
     n "I know that Monika was going to delete us all..."

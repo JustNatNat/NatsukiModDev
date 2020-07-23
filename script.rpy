@@ -4,16 +4,13 @@
 label deleteingname:
     $ persistent.playername = ""
     $ renpy.utter_restart()
-label deleteingname2:
-    $ persistent.playername = ""
-    $ renpy.utter_restart()
+    return
 
 label changename:
     $ persistent.playername = "Chris"
     jump start_main
 
 label start:
-
     # Set the ID of this playthrough
     $ anticheat = persistent.anticheat
 
@@ -102,21 +99,10 @@ label start:
         call screen dialog("The Great King of Evil", ok_action=Return)
     if persistent.playername == "Jevil":
         call screen dialog("Why Jevil though?", ok_action=Return)
-    if persistent.playthrough == 0:
-        #Call example script
-        call start_main from _call_start_main
 
-    elif persistent.playthrough == 3:
-        $ chapter = 1
-        jump ch30_main
-    elif persistent.playthrough == 4:
-        jump ch40_main
-    elif persistent.playthrough == 5:
-        jump ch30_autoload
-    elif persistent.playthrough == 6:
-        jump ch40_main2
-    elif persistent.playthrough == 7:
-        jump ch40_main5
+
+    jump ch30_autoload
+
 
     ################################################################
     #This commented block is the original act structure of the game#
