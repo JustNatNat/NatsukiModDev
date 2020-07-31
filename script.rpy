@@ -38,6 +38,7 @@ label start:
     #This section detemines the "Act Structure" for the game.
     # persistent.playthrough variable marks each of the major game events (Sayori hanging, etc.)
     #Here is an example of how you might do that
+    #TODO: Consider cutting this down
     if persistent.playername == "Gaster":
         $ persistent.playername = ""
         $ renpy.utter_restart()
@@ -104,134 +105,10 @@ label start:
         call screen dialog("Why Jevil though?", ok_action=Return)
     if persistent.playthrough == 0:
         #Call example script
-        call start_main from _call_start_main
+        call start_main
 
-    elif persistent.playthrough == 3:
-        $ chapter = 1
-        jump ch30_main
-    elif persistent.playthrough == 4:
-        jump ch40_main
-    elif persistent.playthrough == 5:
-        jump ch30_autoload
-    elif persistent.playthrough == 6:
-        jump ch40_main2
-    elif persistent.playthrough == 7:
-        jump ch40_main5
-
-    ################################################################
-    #This commented block is the original act structure of the game#
-    ################################################################
-    # if persistent.playthrough == 0:
-    #     # Intro
-    #     $ chapter = 0
-    #     call ch0_main
-    #
-    #     # Poem minigame 1
-    #     call poem
-    #
-    #     # Day 1
-    #     $ chapter = 1
-    #     call ch1_main
-    #     call poemresponse_start
-    #     call ch1_end
-    #
-    #     # Poem minigame 2
-    #     call poem
-    #
-    #     # Day 2
-    #     $ chapter = 2
-    #     call ch2_main
-    #     call poemresponse_start
-    #     call ch2_end
-    #
-    #     # Poem minigame 3
-    #     call poem
-    #
-    #     # Day 3
-    #     $ chapter = 3
-    #     call ch3_main
-    #     call poemresponse_start
-    #     call ch3_end
-    #
-    #     $ chapter = 4
-    #     call ch4_main
-    #
-    #     python:
-    #         try: renpy.file(config.basedir + "/hxppy thxughts.png")
-    #         except: open(config.basedir + "/hxppy thxughts.png", "wb").write(renpy.file("hxppy thxughts.png").read())
-    #     $ chapter = 5
-    #     call ch5_main
-    #
-    #     call endgame
-    #
-    #     return
-    #
-    # elif persistent.playthrough == 1:
-    #     $ chapter = 0
-    #     call ch10_main
-    #     jump playthrough2
-    #
-    #
-    # elif persistent.playthrough == 2:
-    #     # Intro
-    #     $ chapter = 0
-    #     call ch20_main
-    #
-    #     label playthrough2:
-    #
-    #         # Poem minigame 1
-    #         call poem
-    #         python:
-    #             try: renpy.file(config.basedir + "/CAN YOU HEAR ME.txt")
-    #             except: open(config.basedir + "/CAN YOU HEAR ME.txt", "wb").write(renpy.file("CAN YOU HEAR ME.txt").read())
-    #
-    #         # Day 1
-    #         $ chapter = 1
-    #         call ch21_main
-    #         call poemresponse_start
-    #         call ch21_end
-    #
-    #         # Poem minigame 2
-    #         call poem(False)
-    #         python:
-    #             try: renpy.file(config.basedir + "/iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii.txt")
-    #             except: open(config.basedir + "/iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii.txt", "wb").write(renpy.file("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii.txt").read())
-    #
-    #         # Day 2
-    #         $ chapter = 2
-    #         call ch22_main
-    #         call poemresponse_start
-    #         call ch22_end
-    #
-    #         # Poem minigame 3
-    #         call poem(False)
-    #
-    #         # Day 3
-    #         $ chapter = 3
-    #         call ch23_main
-    #         if y_appeal >= 3:
-    #             call poemresponse_start2
-    #         else:
-    #             call poemresponse_start
-    #
-    #         if persistent.demo:
-    #             stop music fadeout 2.0
-    #             scene black with dissolve_cg
-    #             "End of demo"
-    #             return
-    #
-    #         call ch23_end
-    #
-    #         return
-    #
-    # elif persistent.playthrough == 3:
-    #     jump ch30_main
-    #
-    # elif persistent.playthrough == 4:
-    #
-    #     $ chapter = 0
-    #     call ch40_main
-    #     jump credits
+    #From here, we go to autoload which handles all the startup checks and sets
+    jump ch30_autoload
     return
 
 label endgame(pause_length=4.0):

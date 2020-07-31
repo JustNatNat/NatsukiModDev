@@ -1,43 +1,5 @@
 image pool = "mod_assets/locations/pool/pool.png"
 
-init python:
-    import subprocess
-    import os
-    process_list = []
-    currentuser = ""
-    if renpy.windows:
-        try:
-            process_list = subprocess.check_output("wmic process get Description", shell=True).lower().replace("\r", "").replace(" ", "").split("\n")
-        except:
-            pass
-        try:
-            for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
-                user = os.environ.get(name)
-                if user:
-                    currentuser = user
-        except:
-            pass
-
-
-    dismiss_keys = config.keymap['dismiss']
-
-
-label chpool_noskip:
-    show screen fake_skip_indicator
-    n "Uh..."
-    pause 0.4
-    hide screen fake_skip_indicator
-    pause 0.4
-    n "No!"
-    hide screen fake_skip_indicator
-    if persistent.current_monikatopic != 0:
-        n "Now, where was I...?"
-        pause 4.0
-        call expression "chpool_" + str(persistent.current_monikatopic)
-    jump chpool_loop
-    return
-
-
 label chpool_main:
     $ delete_character("monika")
     $ delete_character("sayori")
