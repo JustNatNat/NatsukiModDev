@@ -329,27 +329,40 @@ init python:
     import datetime
     process_list = []
     currentuser = ""
-    if renpy.windows:
-        try:
-            process_list = subprocess.check_output("wmic process get Description", shell=True).lower().replace("\r", "").replace(" ", "").split("\n")
-        except:
-            pass
-        try:
-            for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
-                user = os.environ.get(name)
-                if user:
-                    currentuser = user
-        except:
-            pass
+
+    def get_process_list():
+        """
+        Gets a list of running processes. Note this only works on Windows
+
+        OUT:
+            list of processes
+        """
+        process_list = list()
+        if renpy.windows:
+            try:
+                process_list = subprocess.check_output(
+                    "wmic process get Description",
+                    shell=True
+                ).lower().replace("\r", "").replace(" ", "").split("\n")
+
+            except:
+                pass
+
+        return process_list
+
+    try:
+        for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
+            user = os.environ.get(name)
+            if user:
+                currentuser = user
+    except:
+        pass
 
 
     dismiss_keys = config.keymap['dismiss']
 
     def slow_nodismiss(event, interact=True, **kwargs):
         config.allow_skipping = False
-        if persistent.monikas_return:
-            if not os.path.isfile(basedir + "/characters/monika.chr"):
-                renpy.call("ch31_monikareturn")
         if event == "begin":
             config.keymap['dismiss'] = []
             renpy.display.behavior.clear_keymap_cache()
@@ -511,23 +524,61 @@ label natsukireset:
     show monika_room zorder 2
     show monika_room_highlight zorder 2
 
+init python in music_selector:
+    import store
+
+    #Song constants
+    #TODO: use the correct constants and filepaths here
+    FP_DAIJOUBU = "<from " + str(store.persistent.currentpos) + " loop 0.0>bgm/8.ogg"
+    FP_NATSUKI = "<from " + str(store.persistent.currentpos) + " loop 0.0>bgm/5_natsuki.ogg"
+    FP_DOKIDOKI = "<from " + str(store.persistent.currentpos) + " loop 0.0>mod_assets/dokidoki.ogg"
+    FP_POEMS_FOREVER = "<from " + str(store.persistent.currentpos) + " loop 0.0>mod_assets/poems.ogg"
+    FP_MY_CONFESSION = "<from " + str(store.persistent.currentpos) + " loop 0.0>bgm/10.ogg"
+
+    #TODO: Generalize these. This is not sustainable
+    FP_CUS_01 = "<from " + str(store.persistent.currentpos) + " loop 0.0>custom-music/01.mp3"
+    FP_CUS_02 = "<from " + str(store.persistent.currentpos) + " loop 0.0>custom-music/02.mp3"
+    FP_CUS_03 = "<from " + str(store.persistent.currentpos) + " loop 0.0>custom-music/03.mp3"
+    FP_NO_MUS = None
+
+    MUSIC_MAP = {
+        "daijoubu": FP_DAIJOUBU,
+        "natsuki": FP_NATSUKI,
+        "dokidoki": FP_DOKIDOKI,
+        "poem": FP_POEMS_FOREVER,
+        "confession": FP_MY_CONFESSION,
+        "custom1": FP_CUS_01,
+        "custom2": FP_CUS_02,
+        "custom3": FP_CUS_03,
+        "None": FP_NO_MUS
+    }
+
+    def startup_music():
+        """
+        Runs startup music
+        """
+        renpy.music.play(
+            MUSIC_MAP.get(store.persistent.current_music, FP_NO_MUS),
+            loop=True
+        )
+
 label playmusic:
     if persistent.current_music == "daijoubu":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>bgm/8.ogg"
+        play music
     elif persistent.current_music == "natsuki":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>bgm/5_natsuki.ogg"
+        play music
     elif persistent.current_music == "dokidoki":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>mod_assets/dokidoki.ogg"
+        play music
     elif persistent.current_music == "poem":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>mod_assets/poems.ogg"
+        play music
     elif persistent.current_music == "confession":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>bgm/10.ogg"
+        play music
     elif persistent.current_music == "custom1":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>custom-music/01.mp3"
+        play music
     elif persistent.current_music == "custom2":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>custom-music/02.mp3"
+        play music
     elif persistent.current_music == "custom3":
-        play music "<from " + str(persistent.currentpos) + " loop 0.0>custom-music/03.mp3"
+        play music
     elif persistent.current_music == "normal":
         play music m1
     else:
@@ -903,6 +954,7 @@ label event:
     jump ch30_loop
 
 
+#This label handles any flow hijacks we may need to perform
 label ch30_autoload:
     python:
         today = datetime.date.today()
@@ -912,14 +964,15 @@ label ch30_autoload:
         year = datetime.date.today().strftime("%Y")
         now = datetime.datetime.now()
         current_time = datetime.datetime.now().time().hour
-    $ persistent.prologue = False
-    $ persistent.autoload = "ch30_autoload"
-    $ n.display_args["callback"] = slow_nodismiss
-    $ n.what_args["slow_abortable"] = config.developer
-    $ style.say_dialogue = style.default_monika
-    $ config.allow_skipping = False
-    $ HKBShowButtons()
-    $ allow_boop = False
+
+        persistent.prologue = False
+        persistent.autoload = "ch30_autoload"
+        n.display_args["callback"] = slow_nodismiss
+        n.what_args["slow_abortable"] = config.developer
+        style.say_dialogue = style.default_monika
+        config.allow_skipping = False
+        allow_boop = False
+
     if current_time >= 0 and current_time < 5:
         $ time_of_day = "Night"
         if persistent.wearing == "Witch":
@@ -934,17 +987,18 @@ label ch30_autoload:
             call showroom
     else:
         $ time_of_day = "Day"
-    python:
-        try: os.remove(config.basedir + "/game/python-packages/delcode.py")
-        except: pass
-    python:
-        try: os.remove(config.basedir + "/game/python-packages/basecode.py")
-        except: pass
-    python:
-        try: renpy.file(config.basedir + "../(edgarspoem).txt")
-        except: open(config.basedir + "/edgarspoem.txt", "wb").write(renpy.file("edgarspoem.txt").read())
-    call startup_dlc_check
+
+    #call startup_dlc_check
+
+
+    #FALL THROUGH
+label ch30_visualsetup:
     call showroom
+
+
+
+label ch30_loadin_checks:
+    $ HKBShowButtons()
     if persistent.current_monikatopic == 0:
         python:
             if len(persistent.monikatopics) == 0:

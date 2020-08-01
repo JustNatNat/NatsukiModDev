@@ -91,51 +91,6 @@ image natsuki vomit = "natsuki/vomit.png"
 image n_blackeyes = "images/natsuki/blackeyes.png"
 image n_eye = "images/natsuki/eye.png"
 
-
-
-default persistent.monikatopics = []
-default persistent.monika_reload = 0
-default persistent.tried_skip = None
-default persistent.monika_kill = None
-
-init python:
-    import subprocess
-    import os
-    process_list = []
-    currentuser = ""
-    if renpy.windows:
-        try:
-            process_list = subprocess.check_output("wmic process get Description", shell=True).lower().replace("\r", "").replace(" ", "").split("\n")
-        except:
-            pass
-        try:
-            for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
-                user = os.environ.get(name)
-                if user:
-                    currentuser = user
-        except:
-            pass
-
-
-    dismiss_keys = config.keymap['dismiss']
-
-
-label chclub_noskip:
-    show screen fake_skip_indicator
-    n "Uh..."
-    pause 0.4
-    hide screen fake_skip_indicator
-    pause 0.4
-    n "No!"
-    hide screen fake_skip_indicator
-    if persistent.current_monikatopic != 0:
-        n "Now, where was I...?"
-        pause 4.0
-        call expression "chclub_" + str(persistent.current_monikatopic)
-    jump chclub_loop
-    return
-
-
 label chclub_main:
     $ delete_character("monika")
     $ delete_character("sayori")
@@ -277,7 +232,7 @@ label chclub_1:
 label chclub_2:
     n 1k "Did YOU like the club [player]?"
     n "I know the MC didn't really."
-    n "{cps=15}Actually.{/cps}" 
+    n "{cps=15}Actually.{/cps}"
     n "I won't make you answer."
     n "Nevermind..."
     return
