@@ -4,9 +4,7 @@
 label deleteingname:
     $ persistent.playername = ""
     $ renpy.utter_restart()
-label deleteingname2:
-    $ persistent.playername = ""
-    $ renpy.utter_restart()
+    return
 
 label changename:
     $ persistent.playername = "Chris"
@@ -103,9 +101,10 @@ label start:
         call screen dialog("The Great King of Evil", ok_action=Return)
     if persistent.playername == "Jevil":
         call screen dialog("Why Jevil though?", ok_action=Return)
-    if persistent.playthrough == 0:
-        #Call example script
-        call start_main
+
+    #If this is the first time loading in, we do intro
+    if persistent._seen_intro:
+        call introduction
 
     #From here, we go to autoload which handles all the startup checks and sets
     jump ch30_autoload

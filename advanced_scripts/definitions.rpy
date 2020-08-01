@@ -1998,7 +1998,7 @@ default persistent.clear = [False, False, False, False, False, False, False, Fal
 default persistent.special_poems = None
 default persistent.clearall = None
 default persistent.menu_bg_m = None
-default persistent.first_load = None
+default persistent._seen_intro = False
 default in_skipable = False
 
 ###### Other global variables ######
