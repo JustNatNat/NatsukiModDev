@@ -53,24 +53,7 @@ init python:
 define audio.t1 = "<loop 22.073>bgm/1.ogg"  #Main theme (title)
 
 
-define audio.t2 = "<loop 4.499>bgm/2.ogg"   #Sayori theme
-define audio.t2g = "bgm/2g.ogg"
-define audio.t2g2 = "<from 4.499 loop 4.499>bgm/2.ogg"
-define audio.t2g3 = "<loop 4.492>bgm/2g2.ogg"
-define audio.t3 = "<loop 4.618>bgm/3.ogg"   #Main theme (in-game)
-define audio.t3g = "<to 15.255>bgm/3g.ogg"
-define audio.t3g2 = "<from 15.255 loop 4.618>bgm/3.ogg"
-define audio.t3g3 = "<loop 4.618>bgm/3g2.ogg"
-define audio.t3m = "<loop 4.618>bgm/3.ogg"
-define audio.t4 = "<loop 19.451>bgm/4.ogg"  #Poem minigame
-define audio.t4g = "<loop 1.000>bgm/4g.ogg"
-define audio.tdokidoki = "mod_assets/bgm/dokidoki.ogg"
-define audio.tpoems = "mod_assets/bgm/poems.ogg"
-define audio.custom1 = "custom-music/01.mp3"
-define audio.custom2 = "custom-music/02.mp3"
-define audio.custom3 = "custom-music/03.mp3"
-define audio.battle = "custom-music/battle.mp3"
-define audio.spooky1 = "mod_assets/bgm/spooky1.ogg"
+
 
 define audio.t5 = "<loop 4.444>bgm/5.ogg"   #Sharing poems...... 'Okay Everyone~!'
 #Hey Mod team, our themes aren't defined here in the original script.

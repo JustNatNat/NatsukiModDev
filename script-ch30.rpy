@@ -529,16 +529,16 @@ init python in music_selector:
 
     #Song constants
     #TODO: use the correct constants and filepaths here
-    FP_DAIJOUBU = "<from " + str(store.persistent.currentpos) + " loop 0.0>bgm/8.ogg"
-    FP_NATSUKI = "<from " + str(store.persistent.currentpos) + " loop 0.0>bgm/5_natsuki.ogg"
-    FP_DOKIDOKI = "<from " + str(store.persistent.currentpos) + " loop 0.0>mod_assets/dokidoki.ogg"
-    FP_POEMS_FOREVER = "<from " + str(store.persistent.currentpos) + " loop 0.0>mod_assets/poems.ogg"
-    FP_MY_CONFESSION = "<from " + str(store.persistent.currentpos) + " loop 0.0>bgm/10.ogg"
+    FP_DAIJOUBU = "bgm/8.ogg"
+    FP_NATSUKI = "bgm/5_natsuki.ogg"
+    FP_DOKIDOKI = "mod_assets/dokidoki.ogg"
+    FP_POEMS_FOREVER = "mod_assets/poems.ogg"
+    FP_MY_CONFESSION = "bgm/10.ogg"
 
     #TODO: Generalize these. This is not sustainable
-    FP_CUS_01 = "<from " + str(store.persistent.currentpos) + " loop 0.0>custom-music/01.mp3"
-    FP_CUS_02 = "<from " + str(store.persistent.currentpos) + " loop 0.0>custom-music/02.mp3"
-    FP_CUS_03 = "<from " + str(store.persistent.currentpos) + " loop 0.0>custom-music/03.mp3"
+    FP_CUS_01 = "custom-music/01.mp3"
+    FP_CUS_02 = "custom-music/02.mp3"
+    FP_CUS_03 = "custom-music/03.mp3"
     FP_NO_MUS = None
 
     MUSIC_MAP = {
